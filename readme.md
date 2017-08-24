@@ -25,12 +25,19 @@ Function:
     7. 使用pickel
     
  代码语言:python
+ 
  选择文件
+ 
  Need Environment：Python 3.5 、PyCharm
+ 
  Move：
+ 
  Feature：
+ 
  Important py file：pickle、time、os
+ 
  How To：
+ 
  操作流程如下：
     
     	管理员功能：
