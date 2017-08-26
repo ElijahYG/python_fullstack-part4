@@ -3,51 +3,18 @@
 __author__ = "Elijah"
 __date__ = "2017/8/1 21:37"
 
-'''
-选课系统
-    管理员：
-        创建老师：姓名、性别、年龄、资产
-        创建课程：课程名称、上课时间、课时费、关联老师、---课程内容
-    学生：
-        用户名、密码、性别、年龄、选课列表[]、上课记录{课程1：[di,a,]}
-        *上课记录{课程名称:[上课时间、上课教师]}
-        
-    *教师：
-        *评价信息{学生姓名：[评价时间，评价内容]}
-    
-    1. 管理员设置课程信息和老师信息
-    2. 老师上课获得课时费
-    3. 学生上课，学到“上课内容”
-    4. 学生可自选课程
-    5. 学生可查看已选课程和上课记录
-    6. 学生可评价老师，差评老师要扣款
-    7. 使用pickel
-'''
 import os
 import pickle
 import time
 
 
 def write(name, role, obj):
-    '''
-    将内存内容写到文件
-    :param name:角色的名字
-    :param role: 内容只能是：stuinfo、teachinfo、admininfo
-    :param obj:角色对象
-    :return:
-    '''
     file_name = name + '_' + role + '.txt'
     with open(file_name, mode='wb') as f:
         pickle.dump(obj, f)
 
 
 def read(name, role):
-    '''
-    将文件内容读到内存
-    :param name: 角色的名字
-    :param role: 内容只能是：stuinfo、teachinfo、admininfo
-    :return:
-    '''
     file_name = name + '_' + role + '.txt'
     with open(file_name, mode='rb') as f_r:
         obj = pickle.load(f_r)
@@ -64,10 +31,6 @@ class Student():
         self.learn_record = learn_record
 
     def modify_stuinfo(self):
-        '''
-        学生信息自我修改
-        :return:
-        '''
         while True:
             attr_fields = '''
 当前学生%s信息为：
@@ -107,10 +70,6 @@ class Student():
                   '\n密码：' + self.password + '\n所选课程：' + str(self.courses_list) + '\n学习记录：' + str(self.learn_record))
 
     def learn_courses(self):
-        '''
-        上课学习
-        :return:
-        '''
         while True:
             coursenum_dict = {}
             student_file = self.name + "_stuinfo.txt"
@@ -161,10 +120,6 @@ class Student():
             print('欢迎再次参加本课程，再见！')
 
     def search_courses(self):
-        '''
-        查询学生已选课程
-        :return:
-        '''
         while True:
             courses_list = self.courses_list
             print('当前学生' + self.name + '所选课程为：')
@@ -177,11 +132,6 @@ class Student():
                 continue
 
     def search_learnrecord(self):
-        '''
-        查询学生上课记录
-        上课记录{课程名称:[上课时间、上课教师]}
-        :return:
-        '''
         learn_record = self.learn_record
         print('学生' + self.name + '上课记录为：')
         print('\t课程名称\t上课时间\t\t\t授课教师')
@@ -189,10 +139,6 @@ class Student():
             print('\t' + k + '\t' + v[0] + '\t' + v[1])
 
     def select_course(self):
-        '''
-        自选课程
-        :return:
-        '''
         flag1 = False
         flag2 = False
         while True:
@@ -280,10 +226,6 @@ class Teacher():
         self.evaluate_info = evaluate_info
 
     def modify_teachinfo(self):
-        '''
-        老师基本信息修改
-        :return:
-        '''
         mapping_dict = {}
         evaluate_info = {}
         while True:
@@ -362,10 +304,6 @@ class Teacher():
                   '\n评价信息：' + str(self.evaluate_info))
 
     def search_teach(self):
-        '''
-        查询教授课程
-        :return:
-        '''
         while True:
             courses_list = self.teach_courses
             print('当前教师' + self.name + '的教授课程为：')
@@ -378,11 +316,6 @@ class Teacher():
                 continue
 
     def search_evaluate(self):
-        '''
-        查询评价记录
-        评价信息{学生姓名：[评价时间，评价内容]}
-        :return:
-        '''
         evaluate_info = self.evaluate_info
         print('教师' + self.name + '评价信息为：')
         print('\t学生姓名\t评价内容')
@@ -396,10 +329,6 @@ class Admin():
         self.password = password
 
     def add_student(self):
-        '''
-        √添加学生账号
-        :return:
-        '''
         while True:
             courses_list = []
             learn_record = {}
@@ -478,10 +407,6 @@ class Admin():
             print('用户' + name + '创建成功！')
 
     def delete_student(self):
-        '''
-        √删除学生账号
-        :return:
-        '''
         while True:
             print('当前所有学生账号如下：')
             count = 0
@@ -522,10 +447,6 @@ class Admin():
                 continue
 
     def modify_student(self):
-        '''
-        √修改学生信息
-        :return:
-        '''
         while True:
             flag = False
             mapping_dict = {}
@@ -633,10 +554,6 @@ class Admin():
                           str(student_info.courses_list) + '\n学习记录：' + str(student_info.learn_record))
 
     def show_student(self):
-        '''
-        √显示学生信息
-        :return:
-        '''
         while True:
             mapping_dict = {}
             print('当前所有学生账号如下：')
@@ -667,15 +584,10 @@ class Admin():
                     print(attr_fields)
 
     def add_teacher(self):
-        '''
-        √完善教师账号
-        :return:
-        '''
         while True:
             teacher_count = 0
             teach_courses = []
             teacher_dict = {}
-            # mapping_dict = {}
             try:
                 with open('courses_info.txt', mode='rb') as f:
                     courses_dict = pickle.load(f)
@@ -700,29 +612,6 @@ class Admin():
                     if v[0] == name:
                         teach_courses.append(k)
                 evaluate_info = {}
-                # while True:
-                #     print('当前所有学生账号如下：')
-                #     for root, dirs, files in os.walk('./'):
-                #         count = 0
-                #         for i in files:
-                #             if 'stuinfo.txt' in i:
-                #                 count += 1
-                #                 mapping_dict[count] = i.split('_stuinfo.txt')[0]
-                #                 print(count, i.split('_stuinfo.txt')[0])
-                #     student_num = input('添加评价信息：\n请输入评价该教师的学生姓名对应的编号：\n>>>').strip()
-                #     evaluate_info_name = mapping_dict[int(student_num)]
-                #     evaluate_info_content = input('请输入该学生对此教师的评价：\n>>>').strip()
-                #     is_continue = input('是否继续添加评价信息(y/n)？\n>>>').strip()
-                #     if is_continue.lower() == 'y':
-                #         evaluate_info[evaluate_info_name] = \
-                #             [time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), evaluate_info_content]
-                #         continue
-                #     elif is_continue.lower() == 'n':
-                #         evaluate_info[evaluate_info_name] = \
-                #             [time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), evaluate_info_content]
-                #         break
-                #     else:
-                #         print('对不起！输入有误，请重新输入！')
                 t1 = Teacher(name, sex, age, password, asset, teach_courses, evaluate_info)
                 write(name, 'teachinfo', t1)
                 is_continue = input('教师' + name + '完善完成！是否继续完善其他教师信息(y/n)?\n>>>').strip()
@@ -738,10 +627,6 @@ class Admin():
                 continue
 
     def delete_teacher(self):
-        '''
-        √删除教师账号
-        :return:
-        '''
         exit_flag = False
         while not exit_flag:
             print('当前所有教师账号如下：')
@@ -783,10 +668,6 @@ class Admin():
                     continue
 
     def modify_teacher(self):
-        '''
-        √修改教师信息
-        :return:
-        '''
         while True:
             flag = False
             count1 = 0
@@ -875,10 +756,6 @@ class Admin():
                           str(teacher_info.teach_courses) + '\n学习记录：' + str(teacher_info.evaluate_info))
 
     def show_teacher(self):
-        '''
-        √显示教师信息
-        :return:
-        '''
         while True:
             mapping_dict = {}
             count = 0
@@ -917,10 +794,6 @@ class Admin():
                 continue
 
     def show_course(self):
-        '''
-        √显示课程信息
-        :return:
-        '''
         print('当前课程信息为：')
         with open('courses_info.txt', mode='rb') as f_r:
             try:
@@ -932,21 +805,7 @@ class Admin():
                   + str(v[2]) + '\n\t\t课程内容：' + str(v[3]))
 
     def add_course(self):
-        '''
-        添加课程信息
-        :return:
-        '''
         while True:
-            # print('当前课程信息为：')
-            # try:
-            #     with open('courses_info.txt', mode='rb') as f_r:
-            #         try:
-            #             courses_dict = pickle.load(f_r)
-            #         except Exception:
-            #             courses_dict = {}
-            # except Exception:
-            #     with open('courses_info.txt', mode='w') as f_w:
-            #         f_w.write(' ')
             print('当前课程信息为：')
             with open('courses_info.txt', mode='rb') as f_r:
                 try:
@@ -978,18 +837,8 @@ class Admin():
             with open('courses_info.txt', mode='wb') as f_w:
                 pickle.dump(courses_dict, f_w)
             print('课程添加完成')
-            # print('课程添加完成，当前课程信息为：')
-            # with open('courses_info.txt', mode='rb') as f_r:
-            #     courses_dict = pickle.load(f_r)
-            #     for k, v in courses_dict.items():
-            #         print(str(k) + ': ' + '\n\t\t课程教师：' + str(v[0]) + '\n\t\t上课时间：' + str(v[1]) + '\n\t\t课程费用：'
-            #               + str(v[2]) + '\n\t\t课程内容：' + str(v[3]))
 
     def delete_course(self):
-        '''
-        删除课程信息
-        :return:
-        '''
         while True:
             count = 0
             mapping_course = {}
@@ -1030,10 +879,6 @@ class Admin():
                 continue
 
     def modify_course(self):
-        '''
-        修改课程信息
-        :return:
-        '''
         while True:
             count = 0
             mapping_course = {}
@@ -1312,7 +1157,5 @@ def main():
             print('选择角色有错误！请重新选择！\n')
             continue
 
-
-# 主程序
 if __name__ == '__main__':
     main()
