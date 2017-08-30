@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # _*_ coding:utf-8 _*_
 __author__ = "Elijah"
-__date__ = "2017/8/1 21:37"
+__date__ = "2017/8/30 15:28"
 
 import os
 import pickle
+import random
 import time
 
 
@@ -12,6 +13,7 @@ def write(name, role, obj):
     file_name = name + '_' + role + '.txt'
     with open(file_name, mode='wb') as f:
         pickle.dump(obj, f)
+        f.flush()
 
 
 def read(name, role):
@@ -19,6 +21,86 @@ def read(name, role):
     with open(file_name, mode='rb') as f_r:
         obj = pickle.load(f_r)
         return obj
+
+
+def extra_gains(obj_teach):
+    if hasattr(obj_teach, 'asset'):
+        gains_num = random.uniform(0, 0.3) * int(obj_teach.asset)
+        obj_teach.asset = str(int(gains_num) + int(obj_teach.asset))
+        print('教师' + obj_teach.name + '教学状态良好，多得到小费' + str(int(gains_num)) + '\n')
+    else:
+        print('该教师' + obj_teach.name + '资产状态异常，请联系管理员！')
+
+
+def creat_admin():
+    name = input('新建管理员账号：请输入管理员的姓名：\n').strip()
+    password = input('请输入管理员的密码：\n').strip()
+    a1 = Admin(name, password)
+    write(name, 'admininfo', a1)
+
+    print('管理员' + name + '创建成功！')
+
+
+def creat_student():
+    name = input('新建学生账号：请输入学生的姓名：\n').strip()
+    sex = input('请输入学生的性别：\n').strip()
+    age = input('请输入学生的年龄：\n').strip()
+    password = input('请输入学生的密码：\n').strip()
+    courses_list = input('请输入学生的课程列表(用顿号、隔开)：\n>>>').strip().split('、')
+    learn_record = {}
+    while True:
+        learn_record_name = input('添加上课记录：\n请输入学生所上的课程名：\n>>>').strip()
+        learn_record_time = input('请输入学生上课的时间：\n>>>').strip()
+        learn_record_teacher = input('请输入学生上课的授课教师：\n>>>').strip()
+        is_continue = input('是否继续添加上课记录(y/n)？\n>>>').strip()
+        if is_continue.lower() == 'y':
+            learn_record[learn_record_name.ljust(10)] = [learn_record_time, learn_record_teacher]
+            continue
+        elif is_continue.lower() == 'n':
+            learn_record[learn_record_name.ljust(10)] = [learn_record_time, learn_record_teacher]
+            break
+        else:
+            print('对不起！输入有误，请重新输入！')
+    s1 = Student(name, sex, age, password, courses_list, learn_record)
+    write(name, 'stuinfo', s1)
+    print('学生' + name + '创建成功！')
+
+
+def creat_teacher():
+    mapping_dict = {}
+    name = input('新建教师账号：请输入教师的姓名：\n').strip()
+    sex = input('请输入教师的性别：\n').strip()
+    age = input('请输入教师的年龄：\n').strip()
+    password = input('请输入教师的密码：\n').strip()
+    asset = input('请输入教师的密码：\n').strip()
+    teach_courses = input('请输入教师的教授课程(用顿号、隔开)：\n>>>').strip().split('、')
+    evaluate_info = {}
+    while True:
+        print('当前所有学生账号如下：')
+        for root, dirs, files in os.walk('./'):
+            count = 0
+            for i in files:
+                if 'stuinfo.txt' in i:
+                    count += 1
+                    mapping_dict[count] = i.split('_stuinfo.txt')[0]
+                    print(count, i.split('_stuinfo.txt')[0])
+        student_num = input('添加评价信息：\n请输入评价该教师的学生姓名对应的编号：\n>>>').strip()
+        evaluate_info_name = mapping_dict[int(student_num)]
+        evaluate_info_content = input('请输入该学生对此教师的评价：\n>>>').strip()
+        is_continue = input('是否继续添加评价信息(y/n)？\n>>>').strip()
+        if is_continue.lower() == 'y':
+            evaluate_info[evaluate_info_name] = \
+                [time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), evaluate_info_content]
+            continue
+        elif is_continue.lower() == 'n':
+            evaluate_info[evaluate_info_name] = \
+                [time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), evaluate_info_content]
+            break
+        else:
+            print('对不起！输入有误，请重新输入！')
+    t1 = Teacher(name, sex, age, password, asset, teach_courses, evaluate_info)
+    write(name, 'teachinfo', t1)
+    print('教师' + name + '创建成功！')
 
 
 class Student():
@@ -105,6 +187,9 @@ class Student():
                 uinput_eval_info_cont_val = {'1': '很好', '2': '一般', '3': '差', }
                 if (userinput_evaluate_info_content == '1') or (userinput_evaluate_info_content == '2'):
                     teacher_info.asset = str(int(teacher_info.asset) + 100)
+                    if (random.random()) >= 0.5:
+                        print('\nBingo！由于你的良好评价，教师将得到附加小费！')
+                        extra_gains(teacher_info)
                     break
                 elif userinput_evaluate_info_content == '3':
                     teacher_info.asset = str(int(teacher_info.asset) - 50)
@@ -251,7 +336,7 @@ class Teacher():
                 self.password = changed_attr
             elif modi_attr == '4':
                 changed_attr = input('当前字段值为: ' + self.asset + ' 请输入您要变更的字段内容：\n>>>').strip()
-                self.password = changed_attr
+                self.asset = changed_attr
             elif modi_attr == '5':
                 changed_attr = input(
                     '当前教授课程为: ' + str(self.teach_courses) + ' 请输入您要变更的教授课程(用顿号、隔开)：\n>>>').strip().split('、')
@@ -941,214 +1026,126 @@ def main():
         with open('courses_info.txt', mode='w') as f_w:
             f_w.write(' ')
     while True:
+        current_files = []
+        for root, dirs, files in os.walk('./'):
+            for i in files:
+                current_files.append(i)
         role = input('欢迎登陆选课系统！\n请选择想要登陆角色所对应的编号:\n1、管理员\n2、学生\n3、教师\n4、\033[1;31m退出\033[0m选课系统\n>>>').strip()
         if role == '1':
-            flag = False
             is_exist = input('是否已经拥有管理员账号(y/n)?\n>>>').strip()
             if is_exist.lower() == 'n':
-                name = input('新建管理员账号：请输入管理员的姓名：\n').strip()
-                password = input('请输入管理员的密码：\n').strip()
-                a1 = Admin(name, password)
-                write(name, 'admininfo', a1)
-                print('管理员' + name + '创建成功！')
+                creat_admin()
             elif is_exist.lower() == 'y':
                 name = input('请输入管理员的姓名：\n').strip()
-                for root, dirs, files in os.walk('./'):
-                    if not flag:
-                        for i in files:
-                            if (name + '_admininfo.txt') in i:
-                                obj_admin = read(name, 'admininfo')
-                                userinput_psw = input('请输入管理员 ' + obj_admin.name + ' 的密码\n>>>').strip()
-                                if userinput_psw == obj_admin.password:
-                                    while True:
-                                        print('当前管理员的姓名为：' + obj_admin.name + '\n请选择管理员功能操作：')
-                                        print('1、添加课程\n2、删除课程\n3、修改课程\n4、显示课程\n5、添加学生信息\n6、删除学生信息\n'
-                                              '7、修改学生信息\n8、显示学生信息\n9、完善教师信息\n10、删除教师信息\n11、修改教师信息\n'
-                                              '12、显示教师信息\n13、\033[1;31m退出\033[0m管理员角色')
-                                        admin_choice = input('>>>').strip()
-                                        if admin_choice == '1':
-                                            obj_admin.add_course()
-                                            write(name, 'admininfo', obj_admin)
-                                        elif admin_choice == '2':
-                                            obj_admin.delete_course()
-                                            write(name, 'admininfo', obj_admin)
-                                        elif admin_choice == '3':
-                                            obj_admin.modify_course()
-                                            write(name, 'admininfo', obj_admin)
-                                        elif admin_choice == '4':
-                                            obj_admin.show_course()
-                                            write(name, 'admininfo', obj_admin)
-                                        elif admin_choice == '5':
-                                            obj_admin.add_student()
-                                            write(name, 'admininfo', obj_admin)
-                                        elif admin_choice == '6':
-                                            obj_admin.delete_student()
-                                            write(name, 'admininfo', obj_admin)
-                                        elif admin_choice == '7':
-                                            obj_admin.modify_student()
-                                            write(name, 'admininfo', obj_admin)
-                                        elif admin_choice == '8':
-                                            obj_admin.show_student()
-                                            write(name, 'admininfo', obj_admin)
-                                        elif admin_choice == '9':
-                                            obj_admin.add_teacher()
-                                            write(name, 'admininfo', obj_admin)
-                                        elif admin_choice == '10':
-                                            obj_admin.delete_teacher()
-                                            write(name, 'admininfo', obj_admin)
-                                        elif admin_choice == '11':
-                                            obj_admin.modify_teacher()
-                                            write(name, 'admininfo', obj_admin)
-                                        elif admin_choice == '12':
-                                            obj_admin.show_teacher()
-                                            write(name, 'admininfo', obj_admin)
-                                        elif admin_choice == '13':
-                                            break
-                                        else:
-                                            print('对不起，您的输入有误！')
-                                            continue
-                                else:
-                                    print('对不起，您输入的管理员 ' + obj_admin.name + ' 密码不正确！\n')
-                                    flag = True
-                                    break
-                    elif flag:
+                if (name + '_admininfo.txt') in current_files:
+                    obj_admin = read(name, 'admininfo')
+                    userinput_psw = input('请输入管理员 ' + obj_admin.name + ' 的密码\n>>>').strip()
+                    if userinput_psw == obj_admin.password:
+                        while True:
+                            print('当前管理员的姓名为：' + obj_admin.name + '\n请选择管理员功能操作：')
+                            print('1、添加课程\n2、删除课程\n3、修改课程\n4、显示课程\n5、添加学生信息\n6、删除学生信息\n'
+                                  '7、修改学生信息\n8、显示学生信息\n9、完善教师信息\n10、删除教师信息\n11、修改教师信息\n'
+                                  '12、显示教师信息\n13、\033[1;31m退出\033[0m管理员角色')
+                            admin_choice = input('>>>').strip()
+                            if admin_choice == '1':
+                                func = getattr(obj_admin, 'add_course')
+                            elif admin_choice == '2':
+                                func = getattr(obj_admin, 'delete_course')
+                            elif admin_choice == '3':
+                                func = getattr(obj_admin, 'modify_course')
+                            elif admin_choice == '4':
+                                func = getattr(obj_admin, 'show_course')
+                            elif admin_choice == '5':
+                                func = getattr(obj_admin, 'add_student')
+                            elif admin_choice == '6':
+                                func = getattr(obj_admin, 'delete_student')
+                            elif admin_choice == '7':
+                                func = getattr(obj_admin, 'modify_student')
+                            elif admin_choice == '8':
+                                func = getattr(obj_admin, 'show_student')
+                            elif admin_choice == '9':
+                                func = getattr(obj_admin, 'add_teacher')
+                            elif admin_choice == '10':
+                                func = getattr(obj_admin, 'delete_teacher')
+                            elif admin_choice == '11':
+                                func = getattr(obj_admin, 'modify_teacher')
+                            elif admin_choice == '12':
+                                func = getattr(obj_admin, 'show_teacher')
+                            elif admin_choice == '13':
+                                break
+                            else:
+                                print('对不起，您的输入有误！')
+                                continue
+                            func()
+                            write(name, 'admininfo', obj_admin)
+                    else:
+                        print('对不起，您输入的管理员 ' + obj_admin.name + ' 密码不正确！\n')
                         break
+
         elif role == '2':
-            flag = False
             is_exist = input('是否已经存在学生账号(y/n)?\n>>>').strip()
             if is_exist.lower() == 'n':
-                name = input('新建学生账号：请输入学生的姓名：\n').strip()
-                sex = input('请输入学生的性别：\n').strip()
-                age = input('请输入学生的年龄：\n').strip()
-                password = input('请输入学生的密码：\n').strip()
-                courses_list = input('请输入学生的课程列表(用顿号、隔开)：\n>>>').strip().split('、')
-                learn_record = {}
-                while True:
-                    learn_record_name = input('添加上课记录：\n请输入学生所上的课程名：\n>>>').strip()
-                    learn_record_time = input('请输入学生上课的时间：\n>>>').strip()
-                    learn_record_teacher = input('请输入学生上课的授课教师：\n>>>').strip()
-                    is_continue = input('是否继续添加上课记录(y/n)？\n>>>').strip()
-                    if is_continue.lower() == 'y':
-                        learn_record[learn_record_name.ljust(10)] = [learn_record_time, learn_record_teacher]
-                        continue
-                    elif is_continue.lower() == 'n':
-                        learn_record[learn_record_name.ljust(10)] = [learn_record_time, learn_record_teacher]
-                        break
-                    else:
-                        print('对不起！输入有误，请重新输入！')
-                s1 = Student(name, sex, age, password, courses_list, learn_record)
-                write(name, 'stuinfo', s1)
-                print('学生' + name + '创建成功！')
+                creat_student()
             elif is_exist.lower() == 'y':
                 name = input('请输入学生的姓名：\n').strip()
-                for root, dirs, files in os.walk('./'):
-                    if not flag:
-                        for i in files:
-                            if (name + '_stuinfo.txt') in i:
-                                obj_stu = read(name, 'stuinfo')
-                                userinput_psw = input('请输入学生 ' + obj_stu.name + ' 的密码\n>>>').strip()
-                                if userinput_psw == obj_stu.password:
-                                    while True:
-                                        print('当前学生的姓名为：' + obj_stu.name + '\n请选择学生功能操作：')
-                                        print('1、修改学生信息\n2、上课学习\n3、查询已选课程\n4、查询上课记录\n'
-                                              '5、自主选课\n6、\033[1;31m退出\033[0m学生角色')
-                                        student_choice = input('>>>').strip()
-                                        if student_choice == '1':
-                                            obj_stu.modify_stuinfo()
-                                            write(name, 'stuinfo', obj_stu)
-                                        elif student_choice == '2':
-                                            obj_stu.learn_courses()
-                                            write(name, 'stuinfo', obj_stu)
-                                        elif student_choice == '3':
-                                            obj_stu.search_courses()
-                                            write(name, 'stuinfo', obj_stu)
-                                        elif student_choice == '4':
-                                            obj_stu.search_learnrecord()
-                                            write(name, 'stuinfo', obj_stu)
-                                        elif student_choice == '5':
-                                            obj_stu.select_course()
-                                            write(name, 'stuinfo', obj_stu)
-                                        elif student_choice == '6':
-                                            break
-                                        else:
-                                            print('对不起，您的输入有误！')
-                                            continue
-                                else:
-                                    print('对不起，您输入的学生 ' + obj_stu.name + ' 密码不正确！\n')
-                                    flag = True
-                                    break
-                    elif flag:
+                if (name + '_stuinfo.txt') in current_files:
+                    obj_stu = read(name, 'stuinfo')
+                    userinput_psw = input('请输入学生 ' + obj_stu.name + ' 的密码\n>>>').strip()
+                    if userinput_psw == obj_stu.password:
+                        while True:
+                            print('当前学生的姓名为：' + obj_stu.name + '\n请选择学生功能操作：')
+                            print('1、修改学生信息\n2、上课学习\n3、查询已选课程\n4、查询上课记录\n'
+                                  '5、自主选课\n6、\033[1;31m退出\033[0m学生角色')
+                            student_choice = input('>>>').strip()
+                            if student_choice == '1':
+                                func = getattr(obj_stu, 'modify_stuinfo')
+                            elif student_choice == '2':
+                                func = getattr(obj_stu, 'learn_courses')
+                            elif student_choice == '3':
+                                func = getattr(obj_stu, 'search_courses')
+                            elif student_choice == '4':
+                                func = getattr(obj_stu, 'search_learnrecord')
+                            elif student_choice == '5':
+                                func = getattr(obj_stu, 'select_course')
+                            elif student_choice == '6':
+                                break
+                            else:
+                                print('对不起，您的输入有误！')
+                                continue
+                            func()
+                            write(name, 'stuinfo', obj_stu)
+                    else:
+                        print('对不起，您输入的学生 ' + obj_stu.name + ' 密码不正确！\n')
                         break
         elif role == '3':
-            flag = False
-            mapping_dict = {}
             is_exist = input('是否已经存在教师账号(y/n)?\n>>>').strip()
             if is_exist.lower() == 'n':
-                name = input('新建教师账号：请输入教师的姓名：\n').strip()
-                sex = input('请输入教师的性别：\n').strip()
-                age = input('请输入教师的年龄：\n').strip()
-                password = input('请输入教师的密码：\n').strip()
-                asset = input('请输入教师的密码：\n').strip()
-                teach_courses = input('请输入教师的教授课程(用顿号、隔开)：\n>>>').strip().split('、')
-                evaluate_info = {}
-                while True:
-                    print('当前所有学生账号如下：')
-                    for root, dirs, files in os.walk('./'):
-                        count = 0
-                        for i in files:
-                            if 'stuinfo.txt' in i:
-                                count += 1
-                                mapping_dict[count] = i.split('_stuinfo.txt')[0]
-                                print(count, i.split('_stuinfo.txt')[0])
-                    student_num = input('添加评价信息：\n请输入评价该教师的学生姓名对应的编号：\n>>>').strip()
-                    evaluate_info_name = mapping_dict[int(student_num)]
-                    evaluate_info_content = input('请输入该学生对此教师的评价：\n>>>').strip()
-                    is_continue = input('是否继续添加评价信息(y/n)？\n>>>').strip()
-                    if is_continue.lower() == 'y':
-                        evaluate_info[evaluate_info_name] = \
-                            [time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), evaluate_info_content]
-                        continue
-                    elif is_continue.lower() == 'n':
-                        evaluate_info[evaluate_info_name] = \
-                            [time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), evaluate_info_content]
-                        break
-                    else:
-                        print('对不起！输入有误，请重新输入！')
-                t1 = Teacher(name, sex, age, password, asset, teach_courses, evaluate_info)
-                write(name, 'teachinfo', t1)
-                print('教师' + name + '创建成功！')
+                creat_teacher()
             elif is_exist.lower() == 'y':
                 name = input('请输入教师的姓名：\n').strip()
-                for root, dirs, files in os.walk('./'):
-                    if not flag:
-                        for i in files:
-                            if (name + '_teachinfo.txt') in i:
-                                obj_teacher = read(name, 'teachinfo')
-                                userinput_psw = input('请输入教师 ' + obj_teacher.name + ' 的密码\n>>>').strip()
-                                if userinput_psw == obj_teacher.password:
-                                    while True:
-                                        print('当前教师的姓名为：' + obj_teacher.name + '\n请选择教师功能操作：')
-                                        print('1、修改教师信息\n2、查询教授课程\n3、查询评价记录\n4、\033[1;31m退出\033[0m教师角色')
-                                        teacher_choice = input('>>>').strip()
-                                        if teacher_choice == '1':
-                                            obj_teacher.modify_teachinfo()
-                                            write(name, 'teachinfo', obj_teacher)
-                                        elif teacher_choice == '2':
-                                            obj_teacher.search_teach()
-                                            write(name, 'teachinfo', obj_teacher)
-                                        elif teacher_choice == '3':
-                                            obj_teacher.search_evaluate()
-                                            write(name, 'teachinfo', obj_teacher)
-                                        elif teacher_choice == '4':
-                                            break
-                                        else:
-                                            print('对不起，您的输入有误！')
-                                            continue
-                                else:
-                                    print('对不起，您输入的教师 ' + obj_teacher.name + ' 密码不正确！\n')
-                                    flag = True
-                                    break
-                    elif flag:
+                if (name + '_teachinfo.txt') in current_files:
+                    obj_teacher = read(name, 'teachinfo')
+                    userinput_psw = input('请输入教师 ' + obj_teacher.name + ' 的密码\n>>>').strip()
+                    if userinput_psw == obj_teacher.password:
+                        while True:
+                            print('当前教师的姓名为：' + obj_teacher.name + '\n请选择教师功能操作：')
+                            print('1、修改教师信息\n2、查询教授课程\n3、查询评价记录\n4、\033[1;31m退出\033[0m教师角色')
+                            teacher_choice = input('>>>').strip()
+                            if teacher_choice == '1':
+                                func = getattr(obj_teacher, 'modify_teachinfo')
+                            elif teacher_choice == '2':
+                                func = getattr(obj_teacher, 'search_teach')
+                            elif teacher_choice == '3':
+                                func = getattr(obj_teacher, 'search_evaluate')
+                            elif teacher_choice == '4':
+                                break
+                            else:
+                                print('对不起，您的输入有误！')
+                                continue
+                            func()
+                            write(name, 'teachinfo', obj_teacher)
+                    else:
+                        print('对不起，您输入的教师 ' + obj_teacher.name + ' 密码不正确！\n')
                         break
         elif role == '4':
             print('感谢使用选课系统，欢迎下次光临！再见！')
@@ -1156,6 +1153,7 @@ def main():
         else:
             print('选择角色有错误！请重新选择！\n')
             continue
+
 
 if __name__ == '__main__':
     main()
