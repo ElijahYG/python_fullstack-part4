@@ -1,6 +1,13 @@
 # python_fullstack
 ## [我的博客](http://blog.csdn.net/dragonyangang "我的博客")
 
+### 修改日志
+	2017.08.30 
+	1、在main()方法中运用了反射
+	2、优化了main()方法，增加代码可读性，减少if判断和for循环
+	3、在学生的上课方法中添加了趣味功能：
+		如果学生上课后对教师评价为“良好”或“一般”，会概率性出现给老师额外小费的功能，小费加至该教师的资产中
+
 # 第四模块：作业：选课系统
 	Readme
 	Author: Elijah
@@ -83,5 +90,4 @@
 - 个人博客地址：http://blog.csdn.net/dragonyangang/article/details/77513644
 
 [回到顶部](#readme)
-
 
